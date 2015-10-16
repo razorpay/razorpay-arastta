@@ -1,12 +1,12 @@
-## Razorpay Payment Extension for Opencart
+## Razorpay Payment Extension for Arastta
 
-This extension utilizes Razorpay API and provides seamless integration with Ooencart, allowing payments for Indian merchants via Credit Cards, Debit Cards, Net Banking (supports 3D Secure) without redirecting away from the opencart site.
+This extension utilizes Razorpay API and provides seamless integration with Arastta, allowing payments for Indian merchants via Credit Cards, Debit Cards, Net Banking (supports 3D Secure) without redirecting away from the Arastta site.
 
 ### Installation
 
 Copy all files/folders recursively to opencart installation directory.
 
-Go to Admin Panel, Extensions->Payments and install the Razorpay gateway extension.
+Go to Admin Panel, Marketplace->Payments and enable the Razorpay extension.
 
 Click on Edit next to Razorpay and do the following:
 
@@ -18,10 +18,8 @@ Save the plugin settings
 
 ### Development
 
-- The `master` branch holds the plugin for OpenCart 2
-- The `opencart1.5` branch holds the plugin for Opencart 1.5
-- Tags are in either of these two series: `opencart2-2.x.y` or `opencart1.5-1.x.y`
+- The `master` branch holds the plugin for the latest Arastta version
 
 ### Support
 
-Visit [https://razorpay.com](https://razorpay.com) for support requests or email contact@razorpay.com.
+Visit [razorpay.com](https://razorpay.com) for support requests or email support@razorpay.com.
