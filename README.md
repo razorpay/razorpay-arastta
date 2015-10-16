@@ -4,7 +4,7 @@ This extension utilizes Razorpay API and provides seamless integration with Aras
 
 ### Installation
 
-Copy all files/folders recursively to opencart installation directory.
+Copy all files/folders recursively to Arastta installation directory.
 
 Go to Admin Panel, Marketplace->Payments and enable the Razorpay extension.
 
