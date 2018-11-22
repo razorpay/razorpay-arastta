@@ -10,16 +10,16 @@ Go to Admin Panel, Marketplace->Payments and enable the Razorpay extension.
 
 Click on Edit next to Razorpay and do the following:
 
-- Add your Razorpay Key Id
-- Add your Razorpay Key Secret
-- Change plugin status to Enabled
+-   Add your Razorpay Key Id
+-   Add your Razorpay Key Secret
+-   Change plugin status to Enabled
 
 Save the plugin settings
 
 ### Development
 
-- The `master` branch holds the plugin for the latest Arastta version
+-   The `master` branch holds the plugin for the latest Arastta version
 
 ### Support
 
-Visit [razorpay.com](https://razorpay.com) for support requests or email support@razorpay.com.
+Visit [razorpay.com/support](https://razorpay.com/support) for support requests.
