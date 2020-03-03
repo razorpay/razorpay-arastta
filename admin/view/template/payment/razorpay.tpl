@@ -58,6 +58,20 @@
             </div>
           </div>
           <div class="form-group">
+            <label class="col-sm-2 control-label" for="input-payment-action"><span data-toggle="tooltip" title="<?php echo $help_payment_action; ?>"><?php echo $entry_payment_action; ?></span></label>
+            <div class="col-sm-10">
+              <select name="razorpay_payment_action" id="input-payment-action" class="form-control">
+                <?php if ($razorpay_payment_action === 'capture') { ?>
+                <option value="capture" selected="selected">Authorize and Capture</option>
+                <option value="authorize">Authorize</option>
+                <?php } else { ?>
+                <option value="capture">Authorize and Capture</option>
+                <option value="authorize" selected="selected">Authorize</option>
+                <?php } ?>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
             <label class="col-sm-2 control-label" for="input-status"><?php echo $entry_status; ?></label>
             <div class="col-sm-10">
               <select name="razorpay_status" id="input-status" class="form-control">

@@ -32,6 +32,7 @@ class ControllerPaymentRazorpay extends Controller
         $data['entry_key_id'] = $this->language->get('entry_key_id');
         $data['entry_key_secret'] = $this->language->get('entry_key_secret');
         $data['entry_order_status'] = $this->language->get('entry_order_status');
+        $data['entry_payment_action'] = $this->language->get('entry_payment_action');
         $data['entry_status'] = $this->language->get('entry_status');
         $data['entry_sort_order'] = $this->language->get('entry_sort_order');
 
@@ -40,6 +41,7 @@ class ControllerPaymentRazorpay extends Controller
 
         $data['help_key_id'] = $this->language->get('help_key_id');
         $data['help_order_status'] = $this->language->get('help_order_status');
+        $data['help_payment_action'] = $this->language->get('help_payment_action');
 
         if (isset($this->error['warning'])) {
             $data['error_warning'] = $this->error['warning'];
@@ -99,6 +101,12 @@ class ControllerPaymentRazorpay extends Controller
             $data['razorpay_order_status_id'] = $this->request->post['razorpay_order_status_id'];
         } else {
             $data['razorpay_order_status_id'] = $this->config->get('razorpay_order_status_id');
+        }
+
+        if (isset($this->request->post['razorpay_payment_action'])) {
+            $data['razorpay_payment_action'] = $this->request->post['razorpay_payment_action'];
+        } else {
+            $data['razorpay_payment_action'] = $this->config->get('razorpay_payment_action');
         }
 
         $this->load->model('localisation/order_status');

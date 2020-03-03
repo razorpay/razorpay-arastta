@@ -7,16 +7,23 @@
     description: "Order # <?php echo $merchant_order_id; ?>",
     netbanking: true,
     currency: "<?php echo $currency_code; ?>",
+    order_id: "<?php echo $razorpay_order_id; ?>",
     prefill: {
       name:"<?php echo $card_holder_name; ?>",
       email: "<?php echo $email; ?>",
       contact: "<?php echo $phone; ?>"
     },
     notes: {
-      opencart_order_id: "<?php echo $merchant_order_id; ?>"
+      arastta_order_id: "<?php echo $merchant_order_id; ?>"
+    },
+    _: {
+      integration: "Arastta",
+      integration_version: "<?php echo $version; ?>",
+      integration_parent_version: "<?php echo VERSION; ?>"
     },
     handler: function (transaction) {
         document.getElementById('razorpay_payment_id').value = transaction.razorpay_payment_id;
+        document.getElementById('razorpay_signature').value = transaction.razorpay_signature;
         document.getElementById('razorpay-form').submit();
     }
   };
@@ -28,7 +35,7 @@
       if(!razorpay_submit_btn && el){
         razorpay_submit_btn = el;
         el.disabled = true;
-        el.value = 'Please wait...';  
+        el.value = 'Please wait...';
       }
     } else {
       if(!razorpay_instance){
@@ -45,6 +52,7 @@
 </script>
 <form name="razorpay-form" id="razorpay-form" action="<?php echo $return_url; ?>" method="POST">
   <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id" />
+  <input type="hidden" name="razorpay_signature" id="razorpay_signature" />
   <input type="hidden" name="merchant_order_id" id="merchant_order_id" value="<?php echo $merchant_order_id ?>"/>
 </form>
 <div class="buttons">
