@@ -105,12 +105,12 @@ class ControllerPaymentRazorpay extends Controller
 
     /**
      * Create the session key name
-     * @param  int $order_no
+     * @param  int $order_id
      * @return
      */
-    protected function getOrderSessionKey($order_no)
+    protected function getOrderSessionKey($order_id)
     {
-        return self::RAZORPAY_ORDER_ID . $order_no;
+        return self::RAZORPAY_ORDER_ID . $order_id;
     }
 
     /**
@@ -126,7 +126,7 @@ class ControllerPaymentRazorpay extends Controller
 
     /**
      * Create razorpay order id
-     * @param  int    $order_no
+     * @param  int    $order_id
      * @param  array  $payment
      * @return string
      */
@@ -164,11 +164,11 @@ class ControllerPaymentRazorpay extends Controller
 
     /**
      * Verify the signature on payment success
-     * @param  int $order_no
+     * @param  int $order_id
      * @param  array $response
      * @return
      */
-    protected function verifySignature(int $order_no, $razorpay_payment_id, $razorpay_signature)
+    protected function verifySignature(int $order_id, $razorpay_payment_id, $razorpay_signature)
     {
         $api = $this->getRazorpayApiInstance();
 
@@ -177,7 +177,7 @@ class ControllerPaymentRazorpay extends Controller
             self::RAZORPAY_SIGNATURE  => $razorpay_signature,
         );
 
-        $sessionKey = $this->getOrderSessionKey($order_no);
+        $sessionKey = $this->getOrderSessionKey($order_id);
         $attributes[self::RAZORPAY_ORDER_ID] = $this->session->data[$sessionKey];
 
         $api->utility->verifyPaymentSignature($attributes);
