@@ -1,7 +1,21 @@
 <?php
 
+require_once __DIR__.'/razorpay-sdk/Razorpay.php';
+
+use Razorpay\Api\Api;
+use Razorpay\Api\Errors;
+
 class ControllerPaymentRazorpay extends Controller
 {
+    const RAZORPAY_ARASTTA_VERSION = '2.0.0';
+    const RAZORPAY_PAYMENT_ID      = 'razorpay_payment_id';
+    const ARASTTA_ORDER_ID         = 'arastta_order_id';
+    const RAZORPAY_ORDER_ID        = 'razorpay_order_id';
+    const RAZORPAY_SIGNATURE       = 'razorpay_signature';
+
+    const CAPTURE    = 'capture';
+    const AUTHORIZE  = 'authorize';
+
     public function index()
     {
         $data['button_confirm'] = $this->language->get('button_confirm');
@@ -14,11 +28,16 @@ class ControllerPaymentRazorpay extends Controller
         $data['currency_code'] = $order_info['currency_code'];
         $data['total'] = $this->currency->format($order_info['total'], $order_info['currency_code'], $order_info['currency_value'], false) * 100;
         $data['merchant_order_id'] = $this->session->data['order_id'];
+
+        $razorpay_order_id = $this->createRazorpayOrderId($data);
+
+        $data['razorpay_order_id'] = $razorpay_order_id;
         $data['card_holder_name'] = $order_info['payment_firstname'].' '.$order_info['payment_lastname'];
         $data['email'] = $order_info['email'];
         $data['phone'] = $order_info['telephone'];
         $data['name'] = $this->config->get('config_name');
         $data['lang'] = $this->session->data['language'];
+        $data['version'] = self::RAZORPAY_ARASTTA_VERSION;
         $data['return_url'] = $this->url->link('payment/razorpay/callback', '', 'SSL');
 
         if (file_exists(DIR_TEMPLATE.$this->config->get('config_template').'/template/payment/razorpay.tpl')) {
@@ -28,73 +47,27 @@ class ControllerPaymentRazorpay extends Controller
         }
     }
 
-    private function get_curl_handle($payment_id, $amount)
-    {
-        $url = 'https://api.razorpay.com/v1/payments/'.$payment_id.'/capture';
-        $key_id = $this->config->get('razorpay_key_id');
-        $key_secret = $this->config->get('razorpay_key_secret');
-        $fields_string = "amount=$amount";
-
-        //cURL Request
-        $ch = curl_init();
-
-        //set the url, number of POST vars, POST data
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_USERPWD, $key_id.':'.$key_secret);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 60);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $fields_string);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-        curl_setopt($ch, CURLOPT_CAINFO, dirname(__FILE__).'/ca-bundle.crt');
-
-        return $ch;
-    }
-
     public function callback()
     {
         $this->load->model('checkout/order');
         if (isset($this->request->request['razorpay_payment_id']) and isset($this->request->request['merchant_order_id'])) {
-            $razorpay_payment_id = $this->request->request['razorpay_payment_id'];
-            $merchant_order_id = $this->request->request['merchant_order_id'];
+            $razorpay_payment_id = $this->request->request[self::RAZORPAY_PAYMENT_ID];
+            $razorpay_signature  = $this->request->request[self::RAZORPAY_SIGNATURE];
+            $merchant_order_id   = $this->request->request['merchant_order_id'];
 
             $order_info = $this->model_checkout_order->getOrder($merchant_order_id);
-            $amount = $this->currency->format($order_info['total'], $order_info['currency_code'], $order_info['currency_value'], false) * 100;
 
             $success = false;
-            $error = '';
+            $error = 'Payment failed. Please try again.';
 
-            try {
-                $ch = $this->get_curl_handle($razorpay_payment_id, $amount);
-
-                    //execute post
-                    $result = curl_exec($ch);
-                $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-                if ($result === false) {
-                    $success = false;
-                    $error = 'Curl error: '.curl_error($ch);
-                } else {
-                    $response_array = json_decode($result, true);
-                        //Check success response
-                        if ($http_status === 200 and isset($response_array['error']) === false) {
-                            $success = true;
-                        } else {
-                            $success = false;
-
-                            if (!empty($response_array['error']['code'])) {
-                                $error = $response_array['error']['code'].':'.$response_array['error']['description'];
-                            } else {
-                                $error = 'RAZORPAY_ERROR:Invalid Response <br/>'.$result;
-                            }
-                        }
-                }
-
-                    //close connection
-                    curl_close($ch);
-            } catch (Exception $e) {
-                $success = false;
-                $error = 'OPENCART_ERROR:Request to Razorpay Failed';
+            try
+            {
+                $this->verifySignature($merchant_order_id, $razorpay_payment_id, $razorpay_signature);
+                $success = true;
+            }
+            catch (Errors\SignatureVerificationError $e)
+            {
+                $error = 'ARASTTA_ERROR: Payment to Razorpay Failed. ' . $e->getMessage();
             }
 
             if ($success === true) {
@@ -129,4 +102,85 @@ class ControllerPaymentRazorpay extends Controller
             echo 'An error occured. Contact site administrator, please!';
         }
     }
+
+    /**
+     * Create the session key name
+     * @param  int $order_id
+     * @return
+     */
+    protected function getOrderSessionKey($order_id)
+    {
+        return self::RAZORPAY_ORDER_ID . $order_id;
+    }
+
+    /**
+    * @codeCoverageIgnore
+    */
+    protected function getRazorpayApiInstance()
+    {
+        $key    = $this->config->get('razorpay_key_id');
+        $secret = $this->config->get('razorpay_key_secret');
+
+        return new Api($key, $secret);
+    }
+
+    /**
+     * Create razorpay order id
+     * @param  int    $order_id
+     * @param  array  $payment
+     * @return string
+     */
+    protected function createRazorpayOrderId(array $payment)
+    {
+        $api = $this->getRazorpayApiInstance();
+
+        $data = array(
+            'receipt'         => $payment['merchant_order_id'],
+            'amount'          => (int) round($payment['total']),
+            'currency'        => $payment['currency_code'],
+            'payment_capture' => ($this->config->get('razorpay_payment_action') === self::AUTHORIZE) ? 0 : 1,
+            'notes'           => array(
+                self::ARASTTA_ORDER_ID  => (string) $payment['merchant_order_id'],
+            ),
+        );
+
+        try
+        {
+            $razorpayOrder = $api->order->create($data);
+        }
+        catch (Exception $e)
+        {
+            return $e;
+        }
+
+        $razorpayOrderId = $razorpayOrder['id'];
+
+        $sessionKey = $this->getOrderSessionKey($payment['merchant_order_id']);
+
+        $this->session->data[$sessionKey] = $razorpayOrderId;
+
+        return $razorpayOrderId;
+    }
+
+    /**
+     * Verify the signature on payment success
+     * @param  int $order_id
+     * @param  array $response
+     * @return
+     */
+    protected function verifySignature(int $order_id, $razorpay_payment_id, $razorpay_signature)
+    {
+        $api = $this->getRazorpayApiInstance();
+
+        $attributes = array(
+            self::RAZORPAY_PAYMENT_ID => $razorpay_payment_id,
+            self::RAZORPAY_SIGNATURE  => $razorpay_signature,
+        );
+
+        $sessionKey = $this->getOrderSessionKey($order_id);
+        $attributes[self::RAZORPAY_ORDER_ID] = $this->session->data[$sessionKey];
+
+        $api->utility->verifyPaymentSignature($attributes);
+    }
+
 }
