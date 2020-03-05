@@ -16,11 +16,14 @@ $_['entry_order_status'] = 'Order Status';
 $_['entry_payment_action'] = 'Payment Action';
 $_['entry_status'] = 'Status';
 $_['entry_sort_order'] = 'Sort Order';
+$_['entry_enable_webhook'] = 'Enable Webhook';
+$_['entry_webhook_secret'] = 'Webhook Secret';
 
 //tooltips
 $_['help_key_id'] = 'The Api Key Id and Key Secret you will recieve from the API keys section of Razorpay Dashboard. Use test Key for testing purposes.';
 $_['help_order_status'] = 'The status of the order to be marked on completion of payment.';
 $_['help_payment_action'] = 'Payment action on order compelete.';
+$_['help_enable_webhook'] = 'Enable Razorpay Webhook';
 
 // Error
 $_['error_permission'] = 'Warning: You do not have permission to modify payment Razorpay!';

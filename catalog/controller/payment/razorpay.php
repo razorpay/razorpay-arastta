@@ -71,11 +71,8 @@ class ControllerPaymentRazorpay extends Controller
             }
 
             if ($success === true) {
-                if (!$order_info['order_status_id']) {
-                    $this->model_checkout_order->addOrderHistory($merchant_order_id, $this->config->get('razorpay_order_status_id'), 'Payment Successful. Razorpay Payment Id:'.$razorpay_payment_id);
-                } else {
-                    $this->model_checkout_order->addOrderHistory($merchant_order_id, $this->config->get('razorpay_order_status_id'), 'Payment Successful. Razorpay Payment Id:'.$razorpay_payment_id);
-                }
+
+                $this->model_checkout_order->addOrderHistory($merchant_order_id, $this->config->get('razorpay_order_status_id'), 'Payment Successful. Razorpay Payment Id:'.$razorpay_payment_id);
 
                 echo '<html>'."\n";
                 echo '<head>'."\n";
@@ -101,6 +98,121 @@ class ControllerPaymentRazorpay extends Controller
         } else {
             echo 'An error occured. Contact site administrator, please!';
         }
+    }
+
+    public function processWebhook()
+    {
+        $post = file_get_contents('php://input');
+
+        $data = json_decode($post, true);
+
+        if (json_last_error() !== 0)
+        {
+            return;
+        }
+
+        $enabled = $this->config->get('razorpay_enable_webhook');;
+
+        if (($enabled === '1') and
+            (empty($data['event']) === false))
+        {
+            if (isset($_SERVER['HTTP_X_RAZORPAY_SIGNATURE']) === true)
+            {
+                $razorpayWebhookSecret = $this->config->get('razorpay_webhook_secret');;
+
+                //
+                // If the webhook secret isn't set on arastta dashboard, return
+                //
+                if (empty($razorpayWebhookSecret) === true)
+                {
+                    return;
+                }
+
+                try
+                {
+                    $api = $this->getRazorpayApiInstance();
+
+                    $api->utility->verifyWebhookSignature($post,
+                                                                $_SERVER['HTTP_X_RAZORPAY_SIGNATURE'],
+                                                                $razorpayWebhookSecret);
+                }
+                catch (Errors\SignatureVerificationError $e)
+                {
+                    $this->load->model('checkout/order');
+
+                    $this->model_checkout_order->addOrderHistory($data['payload']['order']['entity']['notes']['arastta_order_id'], 10, $e->getMessage().' Payment Failed! Check Razorpay dashboard for details of Payment Id:'.$data['payload']['payment']['entity']['id']);
+
+                    return;
+                }
+
+                switch ($data['event'])
+                {
+                    case self::ORDER_PAID:
+                        return $this->orderPaid($data);
+
+                    default:
+                        return;
+                }
+            }
+        }
+    }
+
+    /**
+     * Order Paid webhook
+     *
+     * @param array $data
+     */
+    protected function orderPaid(array $data)
+    {
+        //
+        // Order entity should be sent as part of the webhook payload
+        //
+        $orderId = $data['payload']['order']['entity']['notes']['arastta_order_id'];
+
+        $this->load->model('checkout/order');
+
+        $order = $this->model_checkout_order->getOrder($orderId);
+
+        // If it is already marked as paid or failed, ignore the event
+        if ($order['order_status'] === 'Processing' or $order['order_status'] === 'Failed')
+        {
+            return;
+        }
+
+        $success = false;
+        $error = "";
+        $errorMessage = 'The payment has failed.';
+
+        $razorpayPaymentId = $data['payload']['payment']['entity']['id'];
+
+        $amount = $this->getOrderAmountAsInteger($order);
+
+        if($data['payload']['payment']['entity']['amount'] === $amount)
+        {
+            $success = true;
+
+            $this->model_checkout_order->addOrderHistory($orderId, $this->config->get('razorpay_order_status_id'), 'Payment Successful. Razorpay Payment Id:'.$razorpayPaymentId);
+        }
+        else
+        {
+            $error = 'ARASTTA_ERROR: Payment to Razorpay Failed. Amount mismatch.';
+
+            $this->model_checkout_order->addOrderHistory($orderId, 10, $error.' Payment Failed! Check Razorpay dashboard for details of Payment Id:'.$razorpayPaymentId);
+        }
+
+        // Graceful exit since payment is now processed.
+        exit;
+    }
+
+
+    /**
+     * Returns the order amount, rounded as integer
+     * @param Arastta_Order $order Arastta Order instance
+     * @return int Order Amount
+     */
+    public function getOrderAmountAsInteger($order)
+    {
+        return (int) round($order['total'] * 100);
     }
 
     /**
