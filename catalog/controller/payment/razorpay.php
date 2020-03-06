@@ -13,8 +13,11 @@ class ControllerPaymentRazorpay extends Controller
     const RAZORPAY_ORDER_ID        = 'razorpay_order_id';
     const RAZORPAY_SIGNATURE       = 'razorpay_signature';
 
-    const CAPTURE    = 'capture';
-    const AUTHORIZE  = 'authorize';
+    const CAPTURE                  = 'capture';
+    const AUTHORIZE                = 'authorize';
+
+    const ORDER_PAID               = 'order.paid';
+
 
     public function index()
     {
@@ -111,14 +114,14 @@ class ControllerPaymentRazorpay extends Controller
             return;
         }
 
-        $enabled = $this->config->get('razorpay_enable_webhook');;
+        $enabled = $this->config->get('razorpay_enable_webhook');
 
         if (($enabled === '1') and
             (empty($data['event']) === false))
         {
             if (isset($_SERVER['HTTP_X_RAZORPAY_SIGNATURE']) === true)
             {
-                $razorpayWebhookSecret = $this->config->get('razorpay_webhook_secret');;
+                $razorpayWebhookSecret = $this->config->get('razorpay_webhook_secret');
 
                 //
                 // If the webhook secret isn't set on arastta dashboard, return
