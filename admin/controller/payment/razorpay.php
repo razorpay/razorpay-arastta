@@ -35,6 +35,8 @@ class ControllerPaymentRazorpay extends Controller
         $data['entry_payment_action'] = $this->language->get('entry_payment_action');
         $data['entry_status'] = $this->language->get('entry_status');
         $data['entry_sort_order'] = $this->language->get('entry_sort_order');
+        $data['entry_enable_webhook'] = $this->language->get('entry_enable_webhook');
+        $data['entry_webhook_secret'] = $this->language->get('entry_webhook_secret');
 
         $data['button_save'] = $this->language->get('button_save');
         $data['button_cancel'] = $this->language->get('button_cancel');
@@ -42,6 +44,7 @@ class ControllerPaymentRazorpay extends Controller
         $data['help_key_id'] = $this->language->get('help_key_id');
         $data['help_order_status'] = $this->language->get('help_order_status');
         $data['help_payment_action'] = $this->language->get('help_payment_action');
+        $data['help_enable_webhook'] = $this->language->get('help_enable_webhook');
 
         if (isset($this->error['warning'])) {
             $data['error_warning'] = $this->error['warning'];
@@ -125,6 +128,18 @@ class ControllerPaymentRazorpay extends Controller
             $data['razorpay_sort_order'] = $this->config->get('razorpay_sort_order');
         }
 
+        if (isset($this->request->post['razorpay_enable_webhook'])) {
+            $data['razorpay_enable_webhook'] = $this->request->post['razorpay_enable_webhook'];
+        } else {
+            $data['razorpay_enable_webhook'] = $this->config->get('razorpay_enable_webhook');
+        }
+
+        if (isset($this->request->post['razorpay_webhook_secret'])) {
+            $data['razorpay_webhook_secret'] = $this->request->post['razorpay_webhook_secret'];
+        } else {
+            $data['razorpay_webhook_secret'] = $this->config->get('razorpay_webhook_secret');
+        }
+
         $this->template = 'payment/razorpay.tpl';
         $this->children = array(
             'common/header',
@@ -133,6 +148,8 @@ class ControllerPaymentRazorpay extends Controller
         $data['header'] = $this->load->controller('common/header');
         $data['column_left'] = $this->load->controller('common/column_left');
         $data['footer'] = $this->load->controller('common/footer');
+        $store_url = defined('HTTPS_CATALOG') ? HTTPS_CATALOG : HTTPS_SERVER;
+        $data['webhookUrl'] = $store_url.'index.php?route=payment/razorpay/processWebhook';
 
         $this->response->setOutput($this->load->view('payment/razorpay.tpl', $data));
     }

@@ -91,6 +91,23 @@
               <input type="text" name="razorpay_sort_order" value="<?php if($razorpay_sort_order){echo $razorpay_sort_order;} else echo 0; ?>" placeholder="<?php echo $entry_sort_order; ?>" id="input-sort-order" class="form-control" />
             </div>
           </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label" for="input-enable-webhook"><span data-toggle="tooltip" title="<?php echo $help_enable_webhook; ?>"><?php echo $entry_enable_webhook; ?></span></label>
+            <div class="col-sm-10">
+              <?php if ($razorpay_enable_webhook) { $check = "checked"; }else{ $check = '';} ?>
+                <input type="checkbox" style="margin-left: 0px;" name="razorpay_enable_webhook" value="1" id="input-enable-webhook" class="form-control" <?php echo $check; ?>/><br>
+                <span>Enable Razorpay Webhook <a href="https://dashboard.razorpay.com/#/app/webhooks">here</a> with the URL listed below.<br/><br><?php echo $webhookUrl; ?>
+                </span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label" for="input-webhook-secret"><?php echo $entry_webhook_secret; ?></label>
+            <div class="col-sm-10">
+              <input type="text" name="razorpay_webhook_secret" value="<?php echo $razorpay_webhook_secret; ?>" placeholder="<?php echo $entry_webhook_secret; ?>" id="input-webhook-secret" class="form-control" />
+              <span>Webhook secret is used for webhook signature verification. This has to match the one added <a href="https://dashboard.razorpay.com/#/app/webhooks">here</a>
+                </span>
+            </div>
+          </div>
         </form>
       </div>
     </div>
