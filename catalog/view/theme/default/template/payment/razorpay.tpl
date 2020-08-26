@@ -13,6 +13,7 @@
       email: "<?php echo $email; ?>",
       contact: "<?php echo $phone; ?>"
     },
+    callback_url: "<?php echo $return_url;?>&merchant_order_id=<?php echo $merchant_order_id; ?>",
     notes: {
       arastta_order_id: "<?php echo $merchant_order_id; ?>"
     },
