@@ -20,7 +20,8 @@
     _: {
       integration: "Arastta",
       integration_version: "<?php echo $version; ?>",
-      integration_parent_version: "<?php echo VERSION; ?>"
+      integration_parent_version: "<?php echo VERSION; ?>",
+      integration_type: "plugin"
     },
     handler: function (transaction) {
         document.getElementById('razorpay_payment_id').value = transaction.razorpay_payment_id;
