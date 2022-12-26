@@ -7,7 +7,7 @@ use Razorpay\Api\Errors;
 
 class ControllerPaymentRazorpay extends Controller
 {
-    const RAZORPAY_ARASTTA_VERSION = '2.0.0';
+    const RAZORPAY_ARASTTA_VERSION = '2.0.1';
     const RAZORPAY_PAYMENT_ID      = 'razorpay_payment_id';
     const ARASTTA_ORDER_ID         = 'arastta_order_id';
     const RAZORPAY_ORDER_ID        = 'razorpay_order_id';
